@@ -1,5 +1,7 @@
 # 晴雨间
 
+[![CI/CD](https://github.com/c4jeff/flutter-weather-app/actions/workflows/ci.yml/badge.svg)](https://github.com/c4jeff/flutter-weather-app/actions/workflows/ci.yml)
+
 一个使用 Flutter 构建的轻量天气应用。用户可以搜索地点，查看当前天气和未来 7 天预报。
 
 项目将重点放在清晰的数据边界、可测试的状态管理和完整的 Loading/Error 体验上，而不是堆叠功能。
@@ -141,6 +143,19 @@ flutter test
 ```bash
 flutter build web
 ```
+
+## CI/CD
+
+GitHub Actions 会在推送到 `main`、提交 Pull Request 或手动触发时执行：
+
+1. 从项目 `.tool-versions` 安装 Flutter、Java 和 Gradle。
+2. 检查代码格式并运行静态分析。
+3. 运行全部测试并生成覆盖率数据。
+4. 构建 Web Release。
+5. 通过 `asdf exec gradle` 构建 Android Debug APK。
+6. 将 Web 压缩包和 APK 保存为 14 天有效的 Actions Artifact。
+
+工作流只授予只读仓库权限，不需要配置 API Key 或其他 GitHub Secrets。
 
 测试覆盖以下关键行为：
 
