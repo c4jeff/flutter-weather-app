@@ -1,0 +1,51 @@
+{
+  "@@locale": "en",
+  "appName": "Weather Between",
+  "appTagline": "Find a city and check the weather",
+  "searchLocationHint": "Search a city, e.g. Shanghai or Tokyo",
+  "clearSearch": "Clear search",
+  "enterMoreCharacters": "Enter at least one more character",
+  "retry": "Retry",
+  "reload": "Reload",
+  "noLocationsFound": "No matching locations found",
+  "loadingWeather": "Loading weather",
+  "networkError": "Could not connect to the weather service. Check your connection and try again.",
+  "timeoutError": "The request timed out. Please try again.",
+  "serviceError": "The weather service is temporarily unavailable. Please try again later.",
+  "invalidWeatherDataError": "Weather data is incomplete. Please reload.",
+  "unexpectedError": "Something went wrong. Please try again later.",
+  "initialTitle": "Start with a location",
+  "initialDescription": "Search for a city above to see current conditions and the 7-day forecast.",
+  "forecastTitle": "7-day forecast",
+  "weatherDataAttribution": "Weather data provided by Open-Meteo",
+  "humidity": "Humidity",
+  "windSpeed": "Wind speed",
+  "precipitation": "Precipitation",
+  "today": "Today",
+  "feelsLike": "Feels like",
+  "maximum": "High",
+  "minimum": "Low",
+  "updated": "Updated",
+  "currentWeatherSummary": "Feels like {apparentTemperature}° · High {maximumTemperature}°  Low {minimumTemperature}°",
+  "@currentWeatherSummary": {
+    "placeholders": {
+      "apparentTemperature": { "type": "int" },
+      "maximumTemperature": { "type": "int" },
+      "minimumTemperature": { "type": "int" }
+    }
+  },
+  "weatherUpdatedAt": "Updated {formattedDate}",
+  "@weatherUpdatedAt": {
+    "placeholders": { "formattedDate": {} }
+  },
+  "clear": "Clear",
+  "mostlyClear": "Mostly clear",
+  "cloudy": "Cloudy",
+  "fog": "Fog",
+  "drizzle": "Drizzle",
+  "rain": "Rain",
+  "snow": "Snow",
+  "shower": "Showers",
+  "thunderstorm": "Thunderstorm",
+  "unknownWeather": "Unknown"
+}

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/weather.dart';
+import 'package:weather_app/app/theme/weather_colors.dart';
+import 'package:weather_app/features/weather/domain/entities/weather.dart';
+import 'package:weather_app/l10n/generated/app_localizations.dart';
 
 class WeatherDetailGrid extends StatelessWidget {
   const WeatherDetailGrid({required this.forecast, super.key});
@@ -9,21 +11,22 @@ class WeatherDetailGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final current = forecast.current;
     final details = [
       _Detail(
         icon: Icons.water_drop_outlined,
-        label: '湿度',
+        label: l10n.humidity,
         value: '${current.humidity}%',
       ),
       _Detail(
         icon: Icons.air_rounded,
-        label: '风速',
+        label: l10n.windSpeed,
         value: '${_number(current.windSpeed)} ${forecast.windSpeedUnit}',
       ),
       _Detail(
         icon: Icons.umbrella_outlined,
-        label: '降水',
+        label: l10n.precipitation,
         value:
             '${_number(current.precipitation)} ${forecast.precipitationUnit}',
       ),
@@ -54,10 +57,10 @@ class WeatherDetailGrid extends StatelessWidget {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEAF2FF),
+                        color: WeatherColors.accentSurface,
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: Icon(detail.icon, color: const Color(0xFF246BFD)),
+                      child: Icon(detail.icon, color: WeatherColors.primary),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -73,7 +76,7 @@ class WeatherDetailGrid extends StatelessWidget {
                           Text(
                             detail.value,
                             style: const TextStyle(
-                              color: Color(0xFF17213A),
+                              color: WeatherColors.textStrong,
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                             ),

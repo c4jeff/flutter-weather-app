@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/error/app_exception.dart';
-import '../../domain/location.dart';
-import '../location_providers.dart';
+import 'package:weather_app/core/config/app_durations.dart';
+import 'package:weather_app/l10n/app_error_messages.dart';
+import 'package:weather_app/l10n/generated/app_localizations.dart';
+import 'package:weather_app/features/location/domain/entities/location.dart';
+import 'package:weather_app/features/location/presentation/providers/location_providers.dart';
 
 class LocationSearchField extends ConsumerStatefulWidget {
   const LocationSearchField({required this.onSelected, super.key});
@@ -45,7 +47,7 @@ class _LocationSearchFieldState extends ConsumerState<LocationSearchField> {
 
   void _onChanged(String value) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 350), () {
+    _debounce = Timer(AppDurations.searchDebounce, () {
       if (!mounted) return;
       setState(() => _query = value.trim());
     });
@@ -69,9 +71,12 @@ class _LocationSearchFieldState extends ConsumerState<LocationSearchField> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final language = Localizations.localeOf(context).languageCode;
+    final request = (query: _query, language: language);
     final shouldSearch = _query.length >= 2 && _focusNode.hasFocus;
     final results = shouldSearch
-        ? ref.watch(locationSearchProvider(_query))
+        ? ref.watch(locationSearchProvider(request))
         : null;
 
     return Column(
@@ -85,21 +90,21 @@ class _LocationSearchFieldState extends ConsumerState<LocationSearchField> {
           onChanged: _onChanged,
           autocorrect: false,
           decoration: InputDecoration(
-            hintText: '搜索城市，例如：上海、Tokyo',
+            hintText: l10n.searchLocationHint,
             prefixIcon: const Icon(Icons.search_rounded),
             suffixIcon: _controller.text.isEmpty
                 ? null
                 : IconButton(
-                    tooltip: '清除搜索',
+                    tooltip: l10n.clearSearch,
                     onPressed: _clear,
                     icon: const Icon(Icons.close_rounded),
                   ),
           ),
         ),
         if (_focusNode.hasFocus && _controller.text.trim().length == 1)
-          const Padding(
+          Padding(
             padding: EdgeInsets.fromLTRB(16, 10, 16, 0),
-            child: Text('请再输入至少一个字符'),
+            child: Text(l10n.enterMoreCharacters),
           ),
         if (results != null) ...[
           const SizedBox(height: 8),
@@ -126,23 +131,23 @@ class _LocationSearchFieldState extends ConsumerState<LocationSearchField> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          userMessageFor(error),
+                          userMessageFor(l10n, error),
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ),
                       TextButton(
                         onPressed: () =>
-                            ref.invalidate(locationSearchProvider(_query)),
-                        child: const Text('重试'),
+                            ref.invalidate(locationSearchProvider(request)),
+                        child: Text(l10n.retry),
                       ),
                     ],
                   ),
                 ),
                 data: (locations) {
                   if (locations.isEmpty) {
-                    return const Padding(
+                    return Padding(
                       padding: EdgeInsets.all(22),
-                      child: Center(child: Text('没有找到匹配的地点')),
+                      child: Center(child: Text(l10n.noLocationsFound)),
                     );
                   }
                   return ListView.separated(

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:weather_app/core/error/app_exception.dart';
-import 'package:weather_app/features/weather/data/weather_mapper.dart';
-import 'package:weather_app/features/weather/domain/weather.dart';
+import 'package:weather_app/features/weather/data/mappers/weather_mapper.dart';
+import 'package:weather_app/features/weather/domain/entities/weather.dart';
 
 void main() {
   group('WeatherMapper', () {

@@ -11,36 +11,6 @@ enum WeatherCondition {
   unknown,
 }
 
-extension WeatherConditionLabel on WeatherCondition {
-  String get label => switch (this) {
-    WeatherCondition.clear => '晴朗',
-    WeatherCondition.mostlyClear => '少云',
-    WeatherCondition.cloudy => '多云',
-    WeatherCondition.fog => '有雾',
-    WeatherCondition.drizzle => '毛毛雨',
-    WeatherCondition.rain => '降雨',
-    WeatherCondition.snow => '降雪',
-    WeatherCondition.shower => '阵雨',
-    WeatherCondition.thunderstorm => '雷暴',
-    WeatherCondition.unknown => '未知',
-  };
-}
-
-WeatherCondition weatherConditionFromCode(int code) {
-  return switch (code) {
-    0 => WeatherCondition.clear,
-    1 || 2 => WeatherCondition.mostlyClear,
-    3 => WeatherCondition.cloudy,
-    45 || 48 => WeatherCondition.fog,
-    51 || 53 || 55 || 56 || 57 => WeatherCondition.drizzle,
-    61 || 63 || 65 || 66 || 67 => WeatherCondition.rain,
-    71 || 73 || 75 || 77 => WeatherCondition.snow,
-    80 || 81 || 82 || 85 || 86 => WeatherCondition.shower,
-    95 || 96 || 99 => WeatherCondition.thunderstorm,
-    _ => WeatherCondition.unknown,
-  };
-}
-
 class CurrentWeather {
   const CurrentWeather({
     required this.temperature,

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:weather_app/app/theme/weather_colors.dart';
+import 'package:weather_app/core/config/app_durations.dart';
+import 'package:weather_app/l10n/generated/app_localizations.dart';
+
 class LoadingSkeleton extends StatefulWidget {
   const LoadingSkeleton({super.key});
 
@@ -11,7 +15,7 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 900),
+    duration: AppDurations.loadingPulse,
   )..repeat(reverse: true);
 
   @override
@@ -22,15 +26,16 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Semantics(
-      label: '正在加载天气',
+      label: l10n.loadingWeather,
       liveRegion: true,
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
           final color = Color.lerp(
-            const Color(0xFFE3EAF4),
-            const Color(0xFFF2F6FB),
+            WeatherColors.skeletonStart,
+            WeatherColors.skeletonEnd,
             _controller.value,
           )!;
           return Column(

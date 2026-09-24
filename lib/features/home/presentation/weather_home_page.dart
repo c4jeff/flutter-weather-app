@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/error/app_exception.dart';
-import '../../../core/widgets/app_error_view.dart';
-import '../../../core/widgets/loading_skeleton.dart';
-import '../../location/domain/location.dart';
-import '../../location/presentation/location_providers.dart';
-import '../../location/presentation/widgets/location_search_field.dart';
-import '../domain/weather.dart';
-import 'weather_providers.dart';
-import 'widgets/current_weather_card.dart';
-import 'widgets/daily_forecast_list.dart';
-import 'widgets/weather_detail_grid.dart';
+import 'package:weather_app/app/theme/weather_colors.dart';
+import 'package:weather_app/shared/presentation/widgets/app_error_view.dart';
+import 'package:weather_app/core/config/app_durations.dart';
+import 'package:weather_app/l10n/app_error_messages.dart';
+import 'package:weather_app/l10n/generated/app_localizations.dart';
+import 'package:weather_app/features/location/domain/entities/location.dart';
+import 'package:weather_app/features/location/presentation/providers/location_providers.dart';
+import 'package:weather_app/features/location/presentation/widgets/location_search_field.dart';
+import 'package:weather_app/features/weather/domain/entities/weather.dart';
+import 'package:weather_app/features/weather/domain/value_objects/weather_request.dart';
+import 'package:weather_app/features/weather/presentation/providers/weather_providers.dart';
+import 'package:weather_app/features/weather/presentation/widgets/current_weather_card.dart';
+import 'package:weather_app/features/weather/presentation/widgets/daily_forecast_list.dart';
+import 'package:weather_app/features/weather/presentation/widgets/loading_skeleton.dart';
+import 'package:weather_app/features/weather/presentation/widgets/weather_detail_grid.dart';
 
-class WeatherPage extends ConsumerWidget {
-  const WeatherPage({super.key});
+class WeatherHomePage extends ConsumerWidget {
+  const WeatherHomePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,7 +37,7 @@ class WeatherPage extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const _PageHeader(),
+                        _PageHeader(l10n: AppLocalizations.of(context)!),
                         const SizedBox(height: 24),
                         LocationSearchField(
                           onSelected: (value) => ref
@@ -42,7 +46,7 @@ class WeatherPage extends ConsumerWidget {
                         ),
                         const SizedBox(height: 28),
                         AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 260),
+                          duration: AppDurations.weatherContentTransition,
                           child: location == null
                               ? const _InitialState(
                                   key: ValueKey('initial-state'),
@@ -50,10 +54,15 @@ class WeatherPage extends ConsumerWidget {
                               : _WeatherState(
                                   key: ValueKey(location.id),
                                   location: location,
+                                  request: (
+                                    latitude: location.latitude,
+                                    longitude: location.longitude,
+                                    timezone: location.timezone,
+                                  ),
                                 ),
                         ),
                         const SizedBox(height: 28),
-                        const _Attribution(),
+                        _Attribution(l10n: AppLocalizations.of(context)!),
                       ],
                     ),
                   ),
@@ -68,7 +77,9 @@ class WeatherPage extends ConsumerWidget {
 }
 
 class _PageHeader extends StatelessWidget {
-  const _PageHeader();
+  const _PageHeader({required this.l10n});
+
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +90,7 @@ class _PageHeader extends StatelessWidget {
           height: 48,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF246BFD), Color(0xFF62B6F8)],
+              colors: [WeatherColors.primary, WeatherColors.primaryLight],
             ),
             borderRadius: BorderRadius.circular(16),
           ),
@@ -89,8 +100,11 @@ class _PageHeader extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('晴雨间', style: Theme.of(context).textTheme.titleLarge),
-            Text('查找城市，了解天气', style: Theme.of(context).textTheme.bodyMedium),
+            Text(l10n.appName, style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              l10n.appTagline,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           ],
         ),
       ],
@@ -103,12 +117,13 @@ class _InitialState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 64),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: const Color(0xFFE6ECF5)),
+        border: Border.all(color: WeatherColors.cardBorder),
       ),
       child: Column(
         children: [
@@ -116,20 +131,23 @@ class _InitialState extends StatelessWidget {
             width: 82,
             height: 82,
             decoration: const BoxDecoration(
-              color: Color(0xFFEAF2FF),
+              color: WeatherColors.accentSurface,
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.travel_explore_rounded,
-              color: Color(0xFF246BFD),
+              color: WeatherColors.primary,
               size: 40,
             ),
           ),
           const SizedBox(height: 20),
-          Text('从一个地点开始', style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            l10n.initialTitle,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: 8),
           Text(
-            '在上方搜索城市，即可查看当前天气和未来 7 天预报。',
+            l10n.initialDescription,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
@@ -140,20 +158,25 @@ class _InitialState extends StatelessWidget {
 }
 
 class _WeatherState extends ConsumerWidget {
-  const _WeatherState({required this.location, super.key});
+  const _WeatherState({
+    required this.location,
+    required this.request,
+    super.key,
+  });
 
   final Location location;
+  final WeatherRequest request;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final weather = ref.watch(weatherProvider(location));
+    final weather = ref.watch(weatherProvider(request));
 
     return weather.when(
       loading: () => const LoadingSkeleton(),
       error: (error, stackTrace) => Card(
         child: AppErrorView(
-          message: userMessageFor(error),
-          onRetry: () => ref.invalidate(weatherProvider(location)),
+          message: userMessageFor(AppLocalizations.of(context)!, error),
+          onRetry: () => ref.invalidate(weatherProvider(request)),
         ),
       ),
       data: (forecast) =>
@@ -170,14 +193,19 @@ class _WeatherContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        CurrentWeatherCard(location: location, forecast: forecast),
+        CurrentWeatherCard(
+          locationName: location.name,
+          locationSubtitle: location.subtitle,
+          forecast: forecast,
+        ),
         const SizedBox(height: 18),
         WeatherDetailGrid(forecast: forecast),
         const SizedBox(height: 30),
-        Text('未来 7 天', style: Theme.of(context).textTheme.titleLarge),
+        Text(l10n.forecastTitle, style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 14),
         DailyForecastList(days: forecast.daily),
       ],
@@ -186,12 +214,14 @@ class _WeatherContent extends StatelessWidget {
 }
 
 class _Attribution extends StatelessWidget {
-  const _Attribution();
+  const _Attribution({required this.l10n});
+
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      '天气数据由 Open-Meteo 提供',
+      l10n.weatherDataAttribution,
       textAlign: TextAlign.center,
       style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
     );

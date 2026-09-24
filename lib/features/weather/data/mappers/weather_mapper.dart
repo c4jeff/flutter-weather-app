@@ -1,5 +1,5 @@
-import '../../../core/error/app_exception.dart';
-import '../domain/weather.dart';
+import 'package:weather_app/core/error/app_exception.dart';
+import 'package:weather_app/features/weather/domain/entities/weather.dart';
 
 abstract final class WeatherMapper {
   static WeatherForecast fromJson(Map<String, dynamic> json) {
@@ -21,11 +21,8 @@ abstract final class WeatherMapper {
       );
     } on AppException {
       rethrow;
-    } on Object {
-      throw const AppException(
-        AppErrorKind.invalidData,
-        'Unable to parse weather response',
-      );
+    } on FormatException {
+      throw const AppException(AppExceptionCode.unableToParseWeatherResponse);
     }
   }
 
@@ -36,7 +33,7 @@ abstract final class WeatherMapper {
       humidity: _int(json['relative_humidity_2m']),
       windSpeed: _double(json['wind_speed_10m']),
       precipitation: _double(json['precipitation']),
-      condition: weatherConditionFromCode(_int(json['weather_code'])),
+      condition: conditionFromCode(_int(json['weather_code'])),
       isDay: _int(json['is_day']) == 1,
       observedAt: DateTime.parse(_string(json['time'])),
     );
@@ -56,16 +53,13 @@ abstract final class WeatherMapper {
       precipitation.length,
     };
     if (lengths.length != 1 || times.isEmpty) {
-      throw const AppException(
-        AppErrorKind.invalidData,
-        'Daily weather arrays are inconsistent',
-      );
+      throw const AppException(AppExceptionCode.inconsistentDailyWeatherArrays);
     }
 
     return List.generate(times.length, (index) {
       return DailyForecast(
         date: DateTime.parse(_string(times[index])),
-        condition: weatherConditionFromCode(_int(codes[index])),
+        condition: conditionFromCode(_int(codes[index])),
         minimumTemperature: _double(minimums[index]),
         maximumTemperature: _double(maximums[index]),
         precipitationProbability: _int(precipitation[index]),
@@ -73,28 +67,44 @@ abstract final class WeatherMapper {
     }, growable: false);
   }
 
+  /// Converts Open-Meteo's WMO weather codes into application domain values.
+  static WeatherCondition conditionFromCode(int code) {
+    return switch (code) {
+      0 => WeatherCondition.clear,
+      1 || 2 => WeatherCondition.mostlyClear,
+      3 => WeatherCondition.cloudy,
+      45 || 48 => WeatherCondition.fog,
+      51 || 53 || 55 || 56 || 57 => WeatherCondition.drizzle,
+      61 || 63 || 65 || 66 || 67 => WeatherCondition.rain,
+      71 || 73 || 75 || 77 => WeatherCondition.snow,
+      80 || 81 || 82 || 85 || 86 => WeatherCondition.shower,
+      95 || 96 || 99 => WeatherCondition.thunderstorm,
+      _ => WeatherCondition.unknown,
+    };
+  }
+
   static Map<String, dynamic> _map(Object? value) {
     if (value is Map<String, dynamic>) return value;
-    throw const AppException(AppErrorKind.invalidData, 'Expected an object');
+    throw const AppException(AppExceptionCode.expectedObject);
   }
 
   static List<Object?> _list(Object? value) {
     if (value is List) return value;
-    throw const AppException(AppErrorKind.invalidData, 'Expected a list');
+    throw const AppException(AppExceptionCode.expectedList);
   }
 
   static String _string(Object? value) {
     if (value is String && value.isNotEmpty) return value;
-    throw const AppException(AppErrorKind.invalidData, 'Expected text');
+    throw const AppException(AppExceptionCode.expectedText);
   }
 
   static int _int(Object? value) {
     if (value is num) return value.toInt();
-    throw const AppException(AppErrorKind.invalidData, 'Expected a number');
+    throw const AppException(AppExceptionCode.expectedNumber);
   }
 
   static double _double(Object? value) {
     if (value is num) return value.toDouble();
-    throw const AppException(AppErrorKind.invalidData, 'Expected a number');
+    throw const AppException(AppExceptionCode.expectedNumber);
   }
 }

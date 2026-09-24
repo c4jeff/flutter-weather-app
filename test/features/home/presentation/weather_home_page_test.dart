@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:weather_app/app/weather_app.dart';
-import 'package:weather_app/core/network/json_api_client.dart';
-import 'package:weather_app/features/location/data/location_repository.dart';
-import 'package:weather_app/features/location/domain/location.dart';
-import 'package:weather_app/features/location/presentation/location_providers.dart';
-import 'package:weather_app/features/weather/data/weather_repository.dart';
-import 'package:weather_app/features/weather/domain/weather.dart';
-import 'package:weather_app/features/weather/presentation/weather_providers.dart';
+import 'package:weather_app/core/cancellation/request_cancellation.dart';
+import 'package:weather_app/features/location/domain/entities/location.dart';
+import 'package:weather_app/features/location/domain/repositories/location_repository.dart';
+import 'package:weather_app/features/location/presentation/providers/location_providers.dart';
+import 'package:weather_app/features/weather/domain/entities/weather.dart';
+import 'package:weather_app/features/weather/domain/repositories/weather_repository.dart';
+import 'package:weather_app/features/weather/domain/value_objects/weather_request.dart';
+import 'package:weather_app/features/weather/presentation/providers/weather_providers.dart';
 
 void main() {
   testWidgets('searching and selecting a city displays its weather', (
@@ -26,7 +27,7 @@ void main() {
       ),
     );
 
-    expect(find.text('从一个地点开始'), findsOneWidget);
+    expect(find.text('Start with a location'), findsOneWidget);
 
     await tester.enterText(
       find.byKey(const Key('location-search-field')),
@@ -40,8 +41,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('24°'), findsOneWidget);
-    expect(find.text('少云'), findsOneWidget);
-    expect(find.text('未来 7 天'), findsOneWidget);
+    expect(find.text('Partly clear'), findsOneWidget);
+    expect(find.text('7-day forecast'), findsOneWidget);
   });
 }
 
@@ -55,18 +56,21 @@ const _location = Location(
   timezone: 'Asia/Shanghai',
 );
 
-class _FakeLocationRepository extends LocationRepository {
-  _FakeLocationRepository() : super(JsonApiClient());
-
+class _FakeLocationRepository implements LocationRepository {
   @override
-  Future<List<Location>> search(String query) async => const [_location];
+  Future<List<Location>> search(
+    String query, {
+    required String language,
+    RequestCancellation? cancellation,
+  }) async => const [_location];
 }
 
-class _FakeWeatherRepository extends WeatherRepository {
-  _FakeWeatherRepository() : super(JsonApiClient());
-
+class _FakeWeatherRepository implements WeatherRepository {
   @override
-  Future<WeatherForecast> getForecast(Location location) async {
+  Future<WeatherForecast> getForecast(
+    WeatherRequest request, {
+    RequestCancellation? cancellation,
+  }) async {
     return WeatherForecast(
       current: CurrentWeather(
         temperature: 23.6,

@@ -2,120 +2,105 @@
 
 [![CI/CD](https://github.com/c4jeff/flutter-weather-app/actions/workflows/ci.yml/badge.svg)](https://github.com/c4jeff/flutter-weather-app/actions/workflows/ci.yml)
 
-一个使用 Flutter 构建的轻量天气应用。用户可以搜索地点，查看当前天气和未来 7 天预报。
-
-项目将重点放在清晰的数据边界、可测试的状态管理和完整的 Loading/Error 体验上，而不是堆叠功能。
+一个使用 Flutter 构建的天气应用。搜索地点后，可查看当前天气和未来 7 天预报。
 
 ## 功能
 
-- 使用中文或英文搜索城市
-- 展示城市、行政区和国家，区分同名地点
-- 查看当前温度、体感温度和天气状况
-- 查看湿度、风速和降水量
+- 按中文或英文搜索地点，并显示行政区和国家
+- 查看当前温度、体感温度、天气状况、湿度、风速与降水
 - 查看未来 7 天最高温、最低温和降水概率
-- 独立处理地点搜索和天气请求的 Loading、空结果及 Error 状态
-- 支持失败重试
+- 分别呈现搜索与天气请求的 Loading、Error 和空结果状态
+- 失败后可重试；页面切换时取消不再需要的网络请求
+- 按系统语言显示简体中文或英文
 - 响应式适配 Android、iOS 和 Web
 
 ## 技术栈
 
 - Flutter / Dart
-- Material 3
-- Riverpod：异步状态管理与依赖注入
-- `http`：网络请求
-- `intl`：日期格式化
-- Open-Meteo：地点搜索与天气数据
+- Riverpod：状态管理和依赖注入
+- Dio：HTTP 客户端、拦截器和请求取消
+- Flutter gen-l10n / ARB：本地化资源
+- `intl`：日期和星期格式化
+- Open-Meteo：地点搜索与天气数据，无需 API Key
 
-Open-Meteo 的公开接口无需在项目内配置 API Key：
-
-- [Geocoding API](https://open-meteo.com/en/docs/geocoding-api)
-- [Weather Forecast API](https://open-meteo.com/en/docs)
+API 文档：[Geocoding API](https://open-meteo.com/en/docs/geocoding-api) · [Weather Forecast API](https://open-meteo.com/en/docs)
 
 ## 架构
 
-代码按业务功能组织，并在每个功能内划分数据、领域和展示层：
+项目按功能组织，并在每个功能中区分 Clean Architecture 的展示层、领域层和数据层。依赖关系朝向领域规则：展示层只调用用例，领域层持有模型、用例和 Repository 契约，数据层实现契约并处理 Open-Meteo 的网络格式。`app` 是组合根，负责将数据实现注入展示层声明的依赖。
 
 ```text
 lib/
-├── app/                         # 应用入口、主题
-├── core/
-│   ├── error/                   # 统一错误类型和用户提示
-│   ├── network/                 # JSON HTTP 客户端
-│   └── widgets/                 # 通用 Loading、Error 组件
-└── features/
-    ├── location/
-    │   ├── data/                # 地点 Repository 与 API 映射
-    │   ├── domain/              # Location 模型
-    │   └── presentation/        # Provider 与搜索组件
-    └── weather/
-        ├── data/                # 天气 Repository 与 Mapper
-        ├── domain/              # 天气领域模型
-        └── presentation/        # Provider、页面和天气组件
+├── main.dart                             # 启动应用
+├── app/                                  # 应用壳、主题和依赖装配
+│   ├── di/app_dependencies.dart          # 绑定领域契约与数据实现
+│   └── theme/                            # 应用级颜色和主题
+├── core/                                 # 网络、错误、取消信号和全局配置
+├── shared/presentation/widgets/          # 多功能共享 UI 组件
+├── features/
+│   ├── home/presentation/                # 页面级组合：连接地点与天气功能
+│   ├── location/
+│   │   ├── data/repositories/            # Open-Meteo 地点数据实现
+│   │   ├── domain/{entities,repositories,use_cases}/
+│   │   └── presentation/{providers,widgets}/
+│   └── weather/
+│       ├── data/{mappers,repositories}/  # 响应映射和 Open-Meteo 实现
+│       ├── domain/{entities,repositories,use_cases,value_objects}/
+│       └── presentation/{formatters,providers,widgets}/
+└── l10n/
+    ├── arb/                              # 简体中文和英文文案源文件
+    └── generated/                        # Flutter 生成文件，不手工修改
 ```
 
-数据流：
+### 依赖与数据流
 
 ```text
-Widget → Riverpod Provider → Repository → Open-Meteo
-                                      ↓
-Widget ← Domain Model ← Mapper ← API JSON
+Widget → Presentation Provider → Domain Use Case → Domain Repository contract
+                                                        ↑
+App composition root → Data Repository implementation → JsonApiClient / Dio → Open-Meteo
+                                                        ↓
+Widget ← Domain model ← Data Mapper ←──────────────── API response
 ```
 
-界面不直接读取第三方 API 响应。`WeatherMapper` 会校验 Open-Meteo 返回的数据，并将并行的每日数据数组转换为 `DailyForecast` 对象列表。API 字段变化或数据不完整时会得到明确的数据错误，而不是在 Widget 中产生类型异常。
+- `domain` 不依赖 Flutter、Riverpod、Dio 或 Open-Meteo。Repository 接口表达应用需要的能力，而不暴露 HTTP 请求细节。
+- `presentation` 通过用例发起搜索和天气查询，并使用 Riverpod 管理请求状态；它只依赖领域模型、契约和用例。
+- `data` 实现领域 Repository 契约，负责端点参数、响应校验与模型映射。Open-Meteo 的 WMO 天气代码在 `WeatherMapper` 中转换为领域枚举。
+- `app/di/app_dependencies.dart` 将具体实现绑定到抽象 Provider。测试可以直接替换领域 Repository 契约。
+- `features/home` 负责主页级别的功能组合；它读取选中的地点并构造天气查询参数，搜索和天气展示仍由各自功能负责。
+- `core/network` 封装 Dio、JSON 响应校验和拦截器。取消信号位于 `core/cancellation`，Dio `CancelToken` 只在网络客户端内部创建，因此 Dio 不会渗入领域层。
+- 跨功能通用组件放在 `shared/presentation/widgets`；功能专属组件放在各自的 `presentation/widgets`。
+- 手写 Dart 文件统一使用 `package:weather_app/...` 导入。`always_use_package_imports` lint 会检查此约定；gen-l10n 生成文件由工具维护。
 
-## 状态管理
+## 状态与网络
 
-- 搜索框文本、焦点和 350ms 防抖属于局部交互状态，由 Widget 管理。
-- 地点搜索使用参数化的 `FutureProvider.autoDispose`。
-- 当前选择地点使用 `NotifierProvider`。
-- 天气请求使用以 `Location` 为参数的 `FutureProvider.autoDispose`。
-- Repository 和网络客户端通过 Provider 注入，测试中可以直接替换为 Fake。
+- 搜索词和焦点由搜索 Widget 管理；搜索防抖、请求超时和页面过渡时长统一定义在 `AppDurations`。
+- 搜索使用地点功能的 `SearchLocations` 用例；天气使用 `GetWeatherForecast` 用例。两个请求分别使用 `FutureProvider.autoDispose`，释放时经由取消信号停止底层 Dio 请求。
+- 当前选择地点由 `NotifierProvider` 持有；天气请求参数为经纬度和时区，不依赖地点功能的数据模型。
+- 每个请求有独立的 `AsyncValue`，失败后可单独重试。Repository 和客户端通过 Provider 注入。
+- Repository 将 API 响应交给 Mapper。字段缺失、类型错误或数组长度不一致时转换为 `AppException`；错误码不携带展示文案，由 `l10n/app_error_messages.dart` 映射成当前语言的提示。
+- `JsonApiClient` 设置超时并提供统一的 JSON 对象响应；默认拦截器添加 JSON `Accept` 请求头，并将超时、连接、HTTP 状态、取消和 JSON 解码错误归类为 `AppExceptionCode`。额外 Dio 拦截器通过 `apiInterceptorsProvider` 注入。
+- API 主机和路径集中在 `core/network/api_endpoints.dart`。
 
-地点搜索与天气请求各自拥有独立的 `AsyncValue`，一个请求失败不会污染另一个请求的状态。快速修改搜索词时，旧 Provider 会被释放，旧结果不会覆盖当前查询。
+## 本地化
 
-## 错误处理
+文案源文件位于 `lib/l10n/arb`，包含简体中文和英文。界面通过生成的 `AppLocalizations` 读取字符串，并使用当前 locale 格式化日期。新增语言时增加对应 ARB 资源，然后运行：
 
-网络层将异常归一化为以下类别：
-
-```dart
-enum AppErrorKind {
-  network,
-  timeout,
-  service,
-  invalidData,
-  unknown,
-}
+```bash
+flutter gen-l10n
 ```
 
-技术错误不会直接展示给用户。界面根据错误类别提供简短提示，并保留地点或输入内容供用户重试。
+不要手动修改 `lib/l10n/generated` 下的文件。
 
-## 运行项目
+## 环境与运行
 
-环境要求：
-
-- Flutter Stable
-- Dart 3.11 或兼容版本
-- Gradle 8.13（由项目 `.tool-versions` 配置）
-
-安装依赖：
+项目版本由 `.tool-versions` 管理：Flutter `3.41.9-stable`、Java `17`、Gradle `8.13`。
 
 ```bash
 flutter pub get
-```
-
-检查 asdf 中的 Gradle 版本：
-
-```bash
-asdf current gradle
-```
-
-运行：
-
-```bash
 flutter run
 ```
 
-指定平台：
+指定目标设备：
 
 ```bash
 flutter run -d chrome
@@ -123,65 +108,31 @@ flutter run -d android
 flutter run -d ios
 ```
 
-## 质量检查
+检查 asdf 提供的 Gradle：
 
-格式化与静态分析：
+```bash
+asdf current gradle
+```
+
+## 质量检查
 
 ```bash
 dart format --output=none --set-exit-if-changed lib test
 flutter analyze
-```
-
-运行测试：
-
-```bash
 flutter test
+flutter build web --release
 ```
 
-构建 Web：
-
-```bash
-flutter build web
-```
+测试覆盖天气代码和响应映射、地点请求与响应解析，以及搜索地点后展示天气的 Widget 流程。
 
 ## CI/CD
 
-GitHub Actions 会在推送到 `main`、提交 Pull Request 或手动触发时执行：
+GitHub Actions 在推送到 `main`、提交 Pull Request 或手动触发时，从 `.tool-versions` 安装 Flutter、Java 和 Gradle，然后安装依赖、检查格式、运行静态分析和测试、构建 Web Release 与 Android Debug APK，并将产物上传为 14 天有效的 Actions Artifact。工作流不需要 API Key 或 GitHub Secrets。
 
-1. 从项目 `.tool-versions` 安装 Flutter、Java 和 Gradle。
-2. 检查代码格式并运行静态分析。
-3. 运行全部测试并生成覆盖率数据。
-4. 构建 Web Release。
-5. 通过 `asdf exec gradle` 构建 Android Debug APK。
-6. 将 Web 压缩包和 APK 保存为 14 天有效的 Actions Artifact。
+## 当前范围
 
-工作流只授予只读仓库权限，不需要配置 API Key 或其他 GitHub Secrets。
-
-测试覆盖以下关键行为：
-
-- WMO 天气代码到领域枚举的映射
-- Open-Meteo 响应到领域模型的转换
-- 每日预报数组长度不一致时的错误处理
-- 地点请求参数和中文响应解析
-- 搜索、选择地点并展示天气的完整 Widget 流程
-
-## 设计取舍
-
-- 应用只有一个主要页面，因此没有引入路由框架。
-- 服务端数据由 Riverpod 管理，没有再引入额外全局状态库。
-- 网络调用简单，使用 `http` 和薄封装即可满足超时、状态码和 JSON 校验需求。
-- 当前版本不申请设备定位权限，让首次使用流程保持明确且易于测试。
-- 当前版本不持久化最近地点，刷新应用后回到搜索引导页。
-
-## 可扩展方向
-
-- 收藏和最近访问地点
-- 摄氏度与华氏度切换
-- 小时级预报
-- 根据当前位置获取天气
-- 本地缓存与离线展示
-- 深色主题
+应用包含一个天气主页，支持地点搜索、当前天气和 7 天预报；不包含小时预报。应用不申请设备定位权限，不保存收藏或最近地点，也不提供离线缓存。
 
 ## 数据来源
 
-Weather data by [Open-Meteo.com](https://open-meteo.com/)，天气描述基于 WMO Weather Interpretation Codes。
+Weather data by [Open-Meteo.com](https://open-meteo.com/)。天气描述基于 WMO Weather Interpretation Codes。

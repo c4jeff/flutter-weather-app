@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../domain/weather.dart';
-import 'weather_visual.dart';
+import 'package:weather_app/app/theme/weather_colors.dart';
+import 'package:weather_app/features/weather/domain/entities/weather.dart';
+import 'package:weather_app/features/weather/presentation/widgets/weather_visual.dart';
+import 'package:weather_app/l10n/generated/app_localizations.dart';
 
 class DailyForecastList extends StatelessWidget {
   const DailyForecastList({required this.days, super.key});
@@ -11,6 +13,8 @@ class DailyForecastList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final localeName = l10n.localeName;
     return SizedBox(
       height: 190,
       child: ListView.separated(
@@ -29,14 +33,16 @@ class DailyForecastList extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      index == 0 ? '今天' : _weekday(day.date.weekday),
+                      index == 0
+                          ? l10n.today
+                          : DateFormat.EEEE(localeName).format(day.date),
                       style: const TextStyle(
-                        color: Color(0xFF17213A),
+                        color: WeatherColors.textStrong,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     Text(
-                      DateFormat('M月d日').format(day.date),
+                      DateFormat.MMMd(localeName).format(day.date),
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const Spacer(),
@@ -50,7 +56,7 @@ class DailyForecastList extends StatelessWidget {
                       '${day.maximumTemperature.round()}°  '
                       '${day.minimumTemperature.round()}°',
                       style: const TextStyle(
-                        color: Color(0xFF17213A),
+                        color: WeatherColors.textStrong,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -60,7 +66,7 @@ class DailyForecastList extends StatelessWidget {
                         const Icon(
                           Icons.water_drop_rounded,
                           size: 13,
-                          color: Color(0xFF367DEC),
+                          color: WeatherColors.precipitation,
                         ),
                         const SizedBox(width: 3),
                         Text(
@@ -77,10 +83,5 @@ class DailyForecastList extends StatelessWidget {
         },
       ),
     );
-  }
-
-  String _weekday(int weekday) {
-    const labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-    return labels[weekday - 1];
   }
 }

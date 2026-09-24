@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:weather_app/app/theme/weather_colors.dart';
+import 'package:weather_app/l10n/generated/app_localizations.dart';
+
 class AppErrorView extends StatelessWidget {
   const AppErrorView({
     required this.message,
@@ -14,6 +17,7 @@ class AppErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Semantics(
       liveRegion: true,
       child: Padding(
@@ -24,7 +28,7 @@ class AppErrorView extends StatelessWidget {
             Icon(
               Icons.cloud_off_rounded,
               size: compact ? 28 : 48,
-              color: const Color(0xFF77829A),
+              color: WeatherColors.iconMuted,
             ),
             const SizedBox(height: 12),
             Text(
@@ -36,7 +40,7 @@ class AppErrorView extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('重新加载'),
+              label: Text(l10n.reload),
             ),
           ],
         ),

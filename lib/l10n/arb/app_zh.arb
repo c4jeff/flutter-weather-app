@@ -1,0 +1,51 @@
+{
+  "@@locale": "zh",
+  "appName": "晴雨间",
+  "appTagline": "查找城市，了解天气",
+  "searchLocationHint": "搜索城市，例如：上海、Tokyo",
+  "clearSearch": "清除搜索",
+  "enterMoreCharacters": "请再输入至少一个字符",
+  "retry": "重试",
+  "reload": "重新加载",
+  "noLocationsFound": "没有找到匹配的地点",
+  "loadingWeather": "正在加载天气",
+  "networkError": "无法连接到天气服务，请检查网络后重试。",
+  "timeoutError": "请求超时，请稍后重试。",
+  "serviceError": "天气服务暂时不可用，请稍后重试。",
+  "invalidWeatherDataError": "天气数据不完整，请重新加载。",
+  "unexpectedError": "出现了意外问题，请稍后重试。",
+  "initialTitle": "从一个地点开始",
+  "initialDescription": "在上方搜索城市，即可查看当前天气和未来 7 天预报。",
+  "forecastTitle": "未来 7 天",
+  "weatherDataAttribution": "天气数据由 Open-Meteo 提供",
+  "humidity": "湿度",
+  "windSpeed": "风速",
+  "precipitation": "降水",
+  "today": "今天",
+  "feelsLike": "体感",
+  "maximum": "最高",
+  "minimum": "最低",
+  "updated": "更新",
+  "currentWeatherSummary": "体感 {apparentTemperature}° · 最高 {maximumTemperature}°  最低 {minimumTemperature}°",
+  "@currentWeatherSummary": {
+    "placeholders": {
+      "apparentTemperature": { "type": "int" },
+      "maximumTemperature": { "type": "int" },
+      "minimumTemperature": { "type": "int" }
+    }
+  },
+  "weatherUpdatedAt": "{formattedDate} 更新",
+  "@weatherUpdatedAt": {
+    "placeholders": { "formattedDate": {} }
+  },
+  "clear": "晴朗",
+  "mostlyClear": "少云",
+  "cloudy": "多云",
+  "fog": "有雾",
+  "drizzle": "毛毛雨",
+  "rain": "降雨",
+  "snow": "降雪",
+  "shower": "阵雨",
+  "thunderstorm": "雷暴",
+  "unknownWeather": "未知"
+}

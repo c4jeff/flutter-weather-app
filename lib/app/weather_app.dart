@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../features/weather/presentation/weather_page.dart';
-import 'weather_theme.dart';
+import 'package:weather_app/app/theme/weather_theme.dart';
+import 'package:weather_app/features/home/presentation/weather_home_page.dart';
+import 'package:weather_app/l10n/generated/app_localizations.dart';
 
 class WeatherApp extends StatelessWidget {
   const WeatherApp({super.key});
@@ -9,10 +10,12 @@ class WeatherApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '晴雨间',
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appName,
       debugShowCheckedModeBanner: false,
       theme: WeatherTheme.light,
-      home: const WeatherPage(),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const WeatherHomePage(),
     );
   }
 }

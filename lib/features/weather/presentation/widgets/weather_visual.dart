@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/weather.dart';
+import 'package:weather_app/app/theme/weather_colors.dart';
+import 'package:weather_app/features/weather/domain/entities/weather.dart';
 
 IconData iconForWeather(WeatherCondition condition) {
   return switch (condition) {
@@ -19,15 +20,15 @@ IconData iconForWeather(WeatherCondition condition) {
 
 Color colorForWeather(WeatherCondition condition) {
   return switch (condition) {
-    WeatherCondition.clear => const Color(0xFFFFB21A),
-    WeatherCondition.mostlyClear => const Color(0xFF76A9FA),
-    WeatherCondition.cloudy => const Color(0xFF76849F),
-    WeatherCondition.fog => const Color(0xFF8A94A9),
+    WeatherCondition.clear => WeatherColors.sunny,
+    WeatherCondition.mostlyClear => WeatherColors.partlyCloudy,
+    WeatherCondition.cloudy => WeatherColors.cloudy,
+    WeatherCondition.fog => WeatherColors.fog,
     WeatherCondition.drizzle ||
     WeatherCondition.rain ||
-    WeatherCondition.shower => const Color(0xFF367DEC),
-    WeatherCondition.snow => const Color(0xFF79B8D1),
-    WeatherCondition.thunderstorm => const Color(0xFF7656B5),
-    WeatherCondition.unknown => const Color(0xFF8A94A9),
+    WeatherCondition.shower => WeatherColors.precipitation,
+    WeatherCondition.snow => WeatherColors.snow,
+    WeatherCondition.thunderstorm => WeatherColors.thunderstorm,
+    WeatherCondition.unknown => WeatherColors.textMuted,
   };
 }
