@@ -41,7 +41,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('24°'), findsOneWidget);
-    expect(find.text('Partly clear'), findsOneWidget);
+    expect(find.text('Mostly clear'), findsOneWidget);
     expect(find.text('7-day forecast'), findsOneWidget);
   });
 }
