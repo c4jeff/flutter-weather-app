@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appName": "Weather Between",
+  "appName": "Weather Info Demo",
   "appTagline": "Find a city and check the weather",
   "searchLocationHint": "Search a city, e.g. Shanghai or Tokyo",
   "clearSearch": "Clear search",

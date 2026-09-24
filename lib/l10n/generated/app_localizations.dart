@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// No description provided for @appName.
   ///
   /// In zh, this message translates to:
-  /// **'晴雨间'**
+  /// **'天气资讯Demo'**
   String get appName;
 
   /// No description provided for @appTagline.

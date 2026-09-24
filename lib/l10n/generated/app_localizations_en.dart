@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appName => 'Weather Between';
+  String get appName => 'Weather Info Demo';
 
   @override
   String get appTagline => 'Find a city and check the weather';

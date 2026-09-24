@@ -1,4 +1,4 @@
-# 晴雨间
+# 天气资讯Demo
 
 [![CI/CD](https://github.com/c4jeff/flutter-weather-app/actions/workflows/ci.yml/badge.svg)](https://github.com/c4jeff/flutter-weather-app/actions/workflows/ci.yml)
 

@@ -1,6 +1,6 @@
 {
   "@@locale": "zh",
-  "appName": "晴雨间",
+  "appName": "天气资讯Demo",
   "appTagline": "查找城市，了解天气",
   "searchLocationHint": "搜索城市，例如：上海、Tokyo",
   "clearSearch": "清除搜索",
